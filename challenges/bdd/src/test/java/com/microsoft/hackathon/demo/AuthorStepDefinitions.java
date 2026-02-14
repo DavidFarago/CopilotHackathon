@@ -64,6 +64,8 @@ public class AuthorStepDefinitions {
         lastResponse = restTemplate.postForEntity(BASE_URL, request, String.class);
         if (lastResponse.getStatusCode().is2xxSuccessful() && lastResponse.getBody() != null) {
             currentAuthorId = extractId(lastResponse.getBody());
+        } else {
+            currentAuthorId = null;
         }
     }
 
