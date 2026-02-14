@@ -62,7 +62,11 @@ public class AuthorStepDefinitions {
         headers.setContentType(MediaType.APPLICATION_JSON);
         HttpEntity<String> request = new HttpEntity<>("{\"name\":\"" + name + "\"}", headers);
         lastResponse = restTemplate.postForEntity(BASE_URL, request, String.class);
-        currentAuthorId = extractId(lastResponse.getBody());
+        if (lastResponse.getStatusCode().is2xxSuccessful() && lastResponse.getBody() != null) {
+            currentAuthorId = extractId(lastResponse.getBody());
+        } else {
+            currentAuthorId = null;
+        }
     }
 
     @When("I request all authors")
@@ -72,11 +76,13 @@ public class AuthorStepDefinitions {
 
     @When("I request that author by id")
     public void iRequestThatAuthorById() {
+        Assert.assertNotNull("Author ID must be set before requesting by ID", currentAuthorId);
         lastResponse = restTemplate.getForEntity(BASE_URL + "/" + currentAuthorId, String.class);
     }
 
     @When("I update that author name to {string}")
     public void iUpdateThatAuthorNameTo(String name) {
+        Assert.assertNotNull("Author ID must be set before updating", currentAuthorId);
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         HttpEntity<String> request = new HttpEntity<>("{\"name\":\"" + name + "\"}", headers);
@@ -85,6 +91,7 @@ public class AuthorStepDefinitions {
 
     @When("I delete that author")
     public void iDeleteThatAuthor() {
+        Assert.assertNotNull("Author ID must be set before deleting", currentAuthorId);
         lastResponse = restTemplate.exchange(BASE_URL + "/" + currentAuthorId, HttpMethod.DELETE, HttpEntity.EMPTY, String.class);
     }
 
@@ -118,6 +125,7 @@ public class AuthorStepDefinitions {
 
     @And("requesting that author by id should return {int}")
     public void requestingThatAuthorByIdShouldReturn(Integer statusCode) {
+        Assert.assertNotNull("Author ID must be set before requesting by ID", currentAuthorId);
         ResponseEntity<String> response = restTemplate.getForEntity(BASE_URL + "/" + currentAuthorId, String.class);
         Assert.assertEquals((int) statusCode, response.getStatusCode().value());
     }
